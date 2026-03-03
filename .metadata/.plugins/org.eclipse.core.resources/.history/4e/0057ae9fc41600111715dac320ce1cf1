@@ -1,0 +1,11 @@
+package org.testng;
+
+public class Assert {
+
+	public static void main(String[] args)
+	{
+		
+
+	}
+
+}

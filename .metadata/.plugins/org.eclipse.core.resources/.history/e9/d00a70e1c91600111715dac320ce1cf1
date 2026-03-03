@@ -1,0 +1,21 @@
+package org.testng;
+
+public class Assert {
+
+	public static void main(String[] args)
+	{
+		
+
+	}
+
+	public static void assertEquals1(String checkoutTotal, String basketTotal, String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public static void assertEquals(double checkoutValue, double basketValue, String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
