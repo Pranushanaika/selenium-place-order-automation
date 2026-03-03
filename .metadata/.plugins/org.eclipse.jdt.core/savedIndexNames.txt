@@ -38,7 +38,6 @@ INDEX VERSION 1.131+C:\Automation Project\.metadata\.plugins\org.eclipse.jdt.cor
 2124285760.index
 2871225774.index
 750536126.index
-1828026965.index
 1534600658.index
 1981782329.index
 2343443065.index
