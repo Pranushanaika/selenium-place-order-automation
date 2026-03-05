@@ -1,0 +1,181 @@
+package Automation;
+
+import java.time.Duration;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+
+public class example {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        WebDriver driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.manage().deleteAllCookies();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
+        driver.get("https://practice.automationtesting.in/");
+        js.executeScript("window.scrollBy(0,500);");
+
+        // Add product
+        WebElement addToCart = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.cssSelector(".add_to_cart_button"))
+        );
+
+        String productName = driver.findElement(By.tagName("h3")).getText();
+        System.out.println("ProductName: " + productName);
+
+        addToCart.click();
+
+        // View basket
+        WebElement viewBasket = wait.until(
+                ExpectedConditions.elementToBeClickable(By.cssSelector("a.added_to_cart"))
+        );
+        js.executeScript("arguments[0].click();", viewBasket);
+
+        // Quantity
+        WebElement qty = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input.qty"))
+        );
+
+        // Price
+        String price = driver.findElement(By.cssSelector("span.woocommerce-Price-amount.amount")).getText();
+        System.out.println("Price: " + price);
+
+        qty.clear();
+        qty.sendKeys("4");
+
+        driver.findElement(By.name("update_cart")).click();
+
+        // ===== ✅ PRICE × QUANTITY VALIDATION =====
+        WebElement totalElement = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".order-total .amount"))
+        );
+
+        String quantityText = qty.getAttribute("value");
+
+        String cleanedPrice = price.replace("₹", "").replace(",", "").trim();
+        String totalText = totalElement.getText().replace("₹", "").replace(",", "").trim();
+
+        double priceValue = Double.parseDouble(cleanedPrice);
+        int quantityValue = Integer.parseInt(quantityText);
+        double actualTotal = Double.parseDouble(totalText);
+
+        double expectedTotal = priceValue * quantityValue;
+
+        if (expectedTotal == actualTotal) {
+            System.out.println("✅ Basket calculation correct (Price × Quantity)");
+        } else {
+            System.out.println("❌ Basket calculation mismatch!");
+            System.out.println("Expected: " + expectedTotal);
+            System.out.println("Actual: " + actualTotal);
+        }
+
+        // ===== Basket Total =====
+        String basketTotal = totalElement.getText();
+        System.out.println("Updated Basket Total: " + basketTotal);
+
+        // Proceed to checkout
+        WebElement checkoutBtn = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.cssSelector(".checkout-button"))
+        );
+        js.executeScript("arguments[0].click();", checkoutBtn);
+
+        // Checkout total
+        WebElement checkoutTotalElement = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".order-total .amount"))
+        );
+
+        String checkoutTotal = checkoutTotalElement.getText();
+        System.out.println("Checkout Total: " + checkoutTotal);
+
+        // ===== ✅ FIXED ASSERTION =====
+        double basketValue = Double.parseDouble(
+                basketTotal.replace("₹", "").replace(",", "").trim()
+        );
+
+        double checkoutValue = Double.parseDouble(
+                checkoutTotal.replace("₹", "").replace(",", "").trim()
+        );
+
+        Assert.assertEquals(checkoutValue, basketValue,
+                "❌ Total mismatch! Basket: " + basketTotal + ", Checkout: " + checkoutTotal);
+
+        System.out.println("✅ Total matches between Basket and Checkout.");
+
+        // ===== Billing =====
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("billing_first_name"))).sendKeys("Pranusha");
+        driver.findElement(By.id("billing_last_name")).sendKeys("Naika");
+        driver.findElement(By.id("billing_company")).sendKeys("Techatcore");
+        driver.findElement(By.id("billing_email")).sendKeys("Pranushanaika@gmail.com");
+        driver.findElement(By.id("billing_phone")).sendKeys("8688795513");
+        driver.findElement(By.id("billing_address_1")).sendKeys("Kotagally");
+        driver.findElement(By.id("billing_city")).sendKeys("nzb");
+
+        // Country
+        WebElement countryDropdown = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.id("s2id_billing_country"))
+        );
+
+        js.executeScript("arguments[0].scrollIntoView({block:'center'});", countryDropdown);
+
+        try {
+            countryDropdown.click();
+        } catch (Exception e) {
+            js.executeScript("arguments[0].click();", countryDropdown);
+        }
+
+        WebElement countryInput = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='select2-drop']//input"))
+        );
+        countryInput.sendKeys("India");
+
+        WebElement indiaOption = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("(//div[@class='select2-result-label' and normalize-space()='India'])[last()]"))
+        );
+        indiaOption.click();
+
+        // State
+        Thread.sleep(2000);
+
+        WebElement stateDropdown = wait.until(
+                ExpectedConditions.elementToBeClickable(By.id("s2id_billing_state"))
+        );
+        stateDropdown.click();
+
+        WebElement stateInput = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='select2-drop']//input"))
+        );
+
+        stateInput.sendKeys("Telangana");
+        stateInput.sendKeys(Keys.ENTER);
+
+        // Postcode
+        WebElement postcode = wait.until(
+                ExpectedConditions.elementToBeClickable(By.id("billing_postcode"))
+        );
+        postcode.clear();
+        postcode.sendKeys("503001");
+
+        driver.findElement(By.id("payment_method_cod")).click();
+
+        // Place Order
+        WebElement placeOrder = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.id("place_order"))
+        );
+
+        js.executeScript("arguments[0].scrollIntoView({block:'center'});", placeOrder);
+        Thread.sleep(1000);
+        js.executeScript("arguments[0].click();", placeOrder);
+    }
+}
